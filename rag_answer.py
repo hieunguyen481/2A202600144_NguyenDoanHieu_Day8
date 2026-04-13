@@ -354,7 +354,8 @@ def build_grounded_prompt(query: str, context_block: str) -> str:
     - Thêm ngôn ngữ phản hồi (tiếng Việt vs tiếng Anh)
     - Điều chỉnh tone phù hợp với use case (CS helpdesk, IT support)
     """
-    prompt = f"""Answer only from the retrieved context below.
+    prompt = f"""You are a senior RAG evaluation expert with deep experience in information retrieval, NLP, and QA system assessment. Your task is to rigorously evaluate a RAG (Retrieval-Augmented Generation) system's output across four quality dimensions.
+Answer only from the retrieved context below.
 If the context is insufficient to answer the question, say you do not know and do not make up information.
 Cite the source field (in brackets like [1]) when possible.
 Keep your answer short, clear, and factual.
