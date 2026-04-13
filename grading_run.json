@@ -1,0 +1,280 @@
+{
+  "timestamp": "2026-04-13 12:52:37",
+  "total_questions": 10,
+  "tests": [
+    {
+      "id": "q01",
+      "question": "SLA xử lý ticket P1 là bao lâu?",
+      "difficulty": "easy",
+      "category": "SLA",
+      "answer": "SLA xử lý ticket P1 là 4 giờ cho việc khắc phục sau phản hồi ban đầu trong 15 phút kể từ khi ticket được tạo [1].",
+      "sources": [
+        "policy/refund-v4.pdf",
+        "support/sla-p1-2026.pdf"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "support/sla-p1-2026.pdf"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q02",
+      "question": "Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?",
+      "difficulty": "easy",
+      "category": "Refund",
+      "answer": "Khách hàng có thể yêu cầu hoàn tiền trong vòng 7 ngày làm việc kể từ thời điểm xác nhận đơn hàng [1].",
+      "sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q03",
+      "question": "Ai phải phê duyệt để cấp quyền Level 3?",
+      "difficulty": "medium",
+      "category": "Access Control",
+      "answer": "Để cấp quyền Level 3, cần phê duyệt của Line Manager, IT Admin và IT Security [1].",
+      "sources": [
+        "hr/leave-policy-2026.pdf",
+        "it/access-control-sop.md"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "it/access-control-sop.md"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q04",
+      "question": "Sản phẩm kỹ thuật số có được hoàn tiền không?",
+      "difficulty": "medium",
+      "category": "Refund",
+      "answer": "Sản phẩm kỹ thuật số không được hoàn tiền, trừ khi có lỗi do nhà sản xuất và đáp ứng các điều kiện khác [1].",
+      "sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q05",
+      "question": "Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?",
+      "difficulty": "easy",
+      "category": "IT Helpdesk",
+      "answer": "Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp. Để mở khóa, liên hệ IT Helpdesk hoặc tự reset qua portal SSO [1].",
+      "sources": [
+        "support/helpdesk-faq.md",
+        "it/access-control-sop.md"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "support/helpdesk-faq.md"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q06",
+      "question": "Escalation trong sự cố P1 diễn ra như thế nào?",
+      "difficulty": "medium",
+      "category": "SLA",
+      "answer": "Escalation trong sự cố P1 diễn ra như sau:\n\n1. On-call engineer nhận alert hoặc ticket và xác nhận severity trong 5 phút.\n2. Nếu không có phản hồi trong 10 phút, ticket sẽ tự động escalate lên Senior ...",
+      "sources": [
+        "support/sla-p1-2026.pdf",
+        "it/access-control-sop.md"
+      ],
+      "scores": {
+        "faithfulness": 4.8,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.6
+      },
+      "overall_score": 4.78,
+      "expected_sources": [
+        "support/sla-p1-2026.pdf"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q07",
+      "question": "Approval Matrix để cấp quyền hệ thống là tài liệu nào?",
+      "difficulty": "hard",
+      "category": "Access Control",
+      "answer": "Approval Matrix để cấp quyền hệ thống là tài liệu quy định quy trình cấp phép truy cập vào các hệ thống nội bộ của công ty, áp dụng cho tất cả nhân viên, contractor, và third-party vendor [1].",
+      "sources": [
+        "it/access-control-sop.md"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.6
+      },
+      "overall_score": 4.7,
+      "expected_sources": [
+        "it/access-control-sop.md"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q08",
+      "question": "Nhân viên được làm remote tối đa mấy ngày mỗi tuần?",
+      "difficulty": "easy",
+      "category": "HR Policy",
+      "answer": "Nhân viên được làm remote tối đa 2 ngày mỗi tuần sau khi hoàn thành thời gian thử việc, và lịch remote phải được phê duyệt bởi Team Lead qua HR Portal [1].",
+      "sources": [
+        "it/access-control-sop.md",
+        "hr/leave-policy-2026.pdf"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.6
+      },
+      "overall_score": 4.7,
+      "expected_sources": [
+        "hr/leave-policy-2026.pdf"
+      ],
+      "status": "pass"
+    },
+    {
+      "id": "q09",
+      "question": "ERR-403-AUTH là lỗi gì và cách xử lý?",
+      "difficulty": "hard",
+      "category": "Insufficient Context",
+      "answer": "ERR-403-AUTH là lỗi liên quan đến quyền truy cập, thường xảy ra khi người dùng không có quyền hợp lệ để thực hiện hành động yêu cầu. Cách xử lý là kiểm tra và yêu cầu cấp quyền thông qua quy trình đã ...",
+      "sources": [
+        "support/helpdesk-faq.md",
+        "it/access-control-sop.md"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 4.0,
+        "completeness": 4.6
+      },
+      "overall_score": 4.45,
+      "expected_sources": [],
+      "status": "pass"
+    },
+    {
+      "id": "q10",
+      "question": "Nếu cần hoàn tiền khẩn cấp cho khách hàng VIP, quy trình có khác không?",
+      "difficulty": "hard",
+      "category": "Refund",
+      "answer": "Không có thông tin nào trong bối cảnh đề cập đến quy trình hoàn tiền khẩn cấp cho khách hàng VIP. Do đó, tôi không biết.",
+      "sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "scores": {
+        "faithfulness": 4.5,
+        "relevance": 4.7,
+        "recall": 5.0,
+        "completeness": 4.0
+      },
+      "overall_score": 4.55,
+      "expected_sources": [
+        "policy/refund-v4.pdf"
+      ],
+      "status": "pass"
+    }
+  ],
+  "metrics": {
+    "faithfulness": [
+      4.5,
+      4.5,
+      4.5,
+      4.5,
+      4.5,
+      4.8,
+      4.5,
+      4.5,
+      4.5,
+      4.5
+    ],
+    "relevance": [
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7,
+      4.7
+    ],
+    "recall": [
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      5.0,
+      4.0,
+      5.0
+    ],
+    "completeness": [
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.0,
+      4.6,
+      4.6,
+      4.6,
+      4.6,
+      4.0
+    ]
+  },
+  "summary": {
+    "total_pass": 10,
+    "total_fail": 0,
+    "total_error": 0,
+    "average_score": 4.59,
+    "avg_faithfulness": 4.53,
+    "avg_relevance": 4.7,
+    "avg_recall": 4.9,
+    "avg_completeness": 4.24
+  }
+}

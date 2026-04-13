@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5e5e5;
+            background: #fafafa;
+        }
+
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 0.3rem;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            display: flex;
+            gap: 0.8rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .message.user .avatar {
+            order: 2;
+            background: #e8f0fe;
+        }
+
+        .message.bot .avatar {
+            background: #f0f0f0;
+        }
+
+        .content {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+
+        .message.user .content {
+            background: #1f69db;
+            color: white;
+            border-radius: 18px 0 18px 18px;
+        }
+
+        .message.bot .content {
+            background: #e8e8e8;
+            color: #333;
+            border-radius: 0 18px 18px 18px;
+        }
+
+        .footer {
+            padding: 1.5rem;
+            border-top: 1px solid #e5e5e5;
+            background: #fafafa;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #1f69db;
+        }
+
+        .input-group button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: #1f69db;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+        }
+
+        .input-group button:hover {
+            background: #1557b0;
+        }
+
+        .input-group button:active {
+            transform: scale(0.95);
+        }
+
+        .typing {
+            display: flex;
+            gap: 0.3rem;
+        }
+
+        .typing span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #999;
+            animation: bounce 1.4s infinite;
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+            0%, 80%, 100% {
+                opacity: 0.3;
+                transform: translateY(0);
+            }
+            40% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        .source {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .source-badge {
+            display: inline-block;
+            background: rgba(0,0,0,0.08);
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            margin-right: 0.4rem;
+            font-size: 0.75rem;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 0.95rem;
+        }
+
+        .quick-prompts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+            padding-top: 1rem;
+        }
+
+        .quick-prompt {
+            padding: 0.8rem 1rem;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .quick-prompt:hover {
+            background: #f0f7ff;
+            border-color: #1f69db;
+            color: #1f69db;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>💬 RAG Chatbot</h1>
+            <p>Hỏi về chính sách, SLA, quy trình nội bộ</p>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages" id="messagesContainer">
+            <div class="empty-state">
+                <div class="empty-state-icon">🤖</div>
+                <p>Bắt đầu hội thoại để nhận trợ giúp</p>
+            </div>
+        </div>
+
+        <!-- Footer / Input -->
+        <div class="footer">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Hỏi gì đó..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button onclick="sendMessage()">➤</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:5000';
+
+        function clearEmptyState() {
+            const container = document.getElementById('messagesContainer');
+            if (container.querySelector('.empty-state')) {
+                container.innerHTML = '';
+            }
+        }
+
+        function addMessage(text, isUser, source = null) {
+            clearEmptyState();
+            
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+
+            let contentHtml = `
+                <div class="avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="content">
+                    ${text}`;
+            
+            if (source && !isUser) {
+                contentHtml += `
+                    <div class="source">
+                        <strong>Nguồn:</strong> ${source}
+                    </div>`;
+            }
+            
+            contentHtml += `</div>`;
+
+            messageDiv.innerHTML = contentHtml;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping() {
+            clearEmptyState();
+            
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot';
+            messageDiv.id = 'typingIndicator';
+            messageDiv.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="content">
+                    <div class="typing">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            // Add user message
+            addMessage(text, true);
+            input.value = '';
+
+            // Show typing
+            showTyping();
+
+            try {
+                const response = await fetch(`${API_URL}/api/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ question: text })
+                });
+
+                const typingDiv = document.getElementById('typingIndicator');
+                if (typingDiv) typingDiv.remove();
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                const sourceText = data.sources && data.sources.length > 0 
+                    ? data.sources.join(', ')
+                    : 'Không tìm thấy';
+                
+                addMessage(data.answer, false, sourceText);
+
+            } catch (error) {
+                const typingDiv = document.getElementById('typingIndicator');
+                if (typingDiv) typingDiv.remove();
+                
+                const errorMsg = error.message.includes('Failed to fetch')
+                    ? '⚠️ Không thể kết nối server. Hãy chạy: python app.py'
+                    : `⚠️ Lỗi: ${error.message}`;
+                
+                addMessage(errorMsg, false);
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Check server connection
+        async function checkServer() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (!response.ok) {
+                    console.warn('Server not ready');
+                }
+            } catch (error) {
+                console.warn('Server not available:', error.message);
+            }
+        }
+
+        // Auto focus input
+        document.getElementById('messageInput').focus();
+        checkServer();
+    </script>
+</body>
+</html>

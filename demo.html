@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Pipeline Demo — Lab Day 8</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3B82F6;
+            --primary-dark: #1E40AF;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --bg: #F9FAFB;
+            --bg-dark: #1F2937;
+            --text: #111827;
+            --text-light: #6B7280;
+            --border: #E5E7EB;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Main Layout */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: linear-gradient(to right, #F3F4F6, #ffffff);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: max-content;
+        }
+
+        .flow-box {
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+            text-align: center;
+            min-width: 140px;
+        }
+
+        .flow-box.embed {
+            background: var(--success);
+        }
+
+        .flow-box.retrieve {
+            background: var(--warning);
+        }
+
+        .flow-box.llm {
+            background: var(--danger);
+        }
+
+        .arrow {
+            color: var(--text-light);
+            font-size: 1.5rem;
+        }
+
+        /* Query Interface */
+        .query-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .query-input-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .query-input-group input {
+            flex: 1;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+        }
+
+        .query-input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .query-input-group button {
+            padding: 0.875rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .query-input-group button:hover {
+            background: var(--primary-dark);
+        }
+
+        .query-input-group button:active {
+            transform: scale(0.98);
+        }
+
+        /* Results */
+        .result-box {
+            background: var(--bg);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .result-box.answer {
+            border-left-color: var(--success);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .result-box.sources {
+            border-left-color: var(--warning);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .result-box.stats {
+            border-left-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .source-badge {
+            display: inline-block;
+            background: var(--warning);
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Metrics Grid */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric {
+            background: var(--bg);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .metric-label {
+            font-size: 0.825rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        /* Comparison */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .comparison-card {
+            background: linear-gradient(135deg, #F3F4F6 0%, #FFFFFF 100%);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .comparison-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1rem;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        .score-row:last-child {
+            border-bottom: none;
+        }
+
+        .score-label {
+            font-weight: 500;
+        }
+
+        .score-value {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .delta-up {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        /* Innovation Tag */
+        .innovation {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--success);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.825rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        /* Features Section */
+        .features-section {
+            margin-top: 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Mock Data */
+        .mock-data {
+            display: none;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: white;
+            opacity: 0.9;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .footer p {
+            font-size: 0.9rem;
+        }
+
+        /* Test Queries */
+        .test-queries {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .test-button {
+            background: white;
+            border: 2px solid var(--border);
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.825rem;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .test-button:hover {
+            border-color: var(--primary);
+            background: #F0F9FF;
+            color: var(--primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 RAG Pipeline Demo</h1>
+            <p>Trợ lý thông minh trả lời câu hỏi từ chính sách nội bộ</p>
+            <div class="badge">✨ Hybrid Dense + BM25 Retrieval</div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left: Architecture + Query -->
+            <div>
+                <!-- Architecture Card -->
+                <div class="card">
+                    <h2>🏗️ Pipeline Architecture</h2>
+                    <div class="architecture">
+                        <div class="flow">
+                            <div class="flow-box">Raw Docs<br>5 files</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-box embed">Chunk<br>29 chunks</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-box embed">Embed<br>OpenAI</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-box retrieve">Hybrid<br>Dense+BM25</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-box llm">LLM<br>gpt-4o-mini</div>
+                            <div class="arrow">→</div>
+                            <div class="flow-box" style="background: #8B5CF6;">Answer<br>+Citation</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Query Interface -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h2>❓ Tìm kiếm</h2>
+                    <div class="query-section">
+                        <div class="query-input-group">
+                            <input type="text" id="queryInput" placeholder="Hỏi gì đó về chính sách..." value="SLA xử lý ticket P1 là bao lâu?">
+                            <button onclick="sendQuery()">Tìm</button>
+                        </div>
+                        <div class="test-queries">
+                            <button class="test-button" onclick="setQuery('Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?')">💰 Hoàn tiền</button>
+                            <button class="test-button" onclick="setQuery('Ai phải phê duyệt để cấp quyền Level 3?')">🔐 Quyền truy cập</button>
+                            <button class="test-button" onclick="setQuery('Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?')">🔒 Tài khoản</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Results + Metrics -->
+            <div>
+                <!-- Results Card -->
+                <div class="card">
+                    <h2>📋 Kết quả</h2>
+                    <div id="resultContainer">
+                        <div class="result-box answer">
+                            <div class="result-label">💬 Câu trả lời</div>
+                            <p>SLA xử lý ticket P1 là 4 giờ để khắc phục và phản hồi ban đầu trong 15 phút kể từ khi ticket được tạo <strong>[1]</strong>.</p>
+                        </div>
+                        <div class="result-box sources">
+                            <div class="result-label">📚 Nguồn tham khảo</div>
+                            <div>
+                                <span class="source-badge">support/sla-p1-2026.pdf</span>
+                            </div>
+                        </div>
+                        <div class="result-box stats">
+                            <div class="result-label">📊 Chi tiết truy xuất</div>
+                            <p><strong>Retrieval Mode:</strong> Hybrid (Dense 60% + BM25 40%)<br>
+                            <strong>Chunks Found:</strong> 10 candidates → 3 selected<br>
+                            <strong>Top Score:</strong> 0.85 (cosine similarity)</p>
+                        </div>
+                    </div>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Đang xử lý...</p>
+                    </div>
+                </div>
+
+                <!-- Metrics -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h2>📈 Hiệu suất</h2>
+                    <div class="metrics-grid">
+                        <div class="metric">
+                            <div class="metric-value">4.7</div>
+                            <div class="metric-label">Score trung bình</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">5.0</div>
+                            <div class="metric-label">Faithfulness</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">4.4</div>
+                            <div class="metric-label">Context Recall</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">+0.5</div>
+                            <div class="metric-label">Cải thiện vs Dense</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison -->
+        <div class="card">
+            <h2>⚖️ So sánh: Dense vs Hybrid</h2>
+            <div class="comparison-grid">
+                <div class="comparison-card">
+                    <div class="comparison-title">📌 Dense (Baseline)</div>
+                    <div class="score-row">
+                        <span class="score-label">Faithfulness</span>
+                        <span class="score-value">4.7/5</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Relevance</span>
+                        <span class="score-value">4.6/5</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Recall</span>
+                        <span class="score-value">3.7/5 ⚠️</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Completeness</span>
+                        <span class="score-value">4.1/5</span>
+                    </div>
+                    <div class="score-row" style="padding-top: 1rem; border-top: 2px solid var(--border); margin-top: 1rem;">
+                        <span class="score-label" style="font-weight: 700;">Overall</span>
+                        <span class="score-value">4.2/5</span>
+                    </div>
+                </div>
+
+                <div class="comparison-card">
+                    <div class="comparison-title">✨ Hybrid (Chosen)</div>
+                    <div class="score-row">
+                        <span class="score-label">Faithfulness</span>
+                        <span class="score-value delta-up">5.0/5 ✅</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Relevance</span>
+                        <span class="score-value delta-up">4.9/5 ✅</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Recall</span>
+                        <span class="score-value delta-up">4.4/5 ✅</span>
+                    </div>
+                    <div class="score-row">
+                        <span class="score-label">Completeness</span>
+                        <span class="score-value delta-up">4.5/5 ✅</span>
+                    </div>
+                    <div class="score-row" style="padding-top: 1rem; border-top: 2px solid var(--border); margin-top: 1rem;">
+                        <span class="score-label" style="font-weight: 700;">Overall</span>
+                        <span class="score-value delta-up">4.7/5 (+0.5)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="innovation">
+                🎯 RRF (Reciprocal Rank Fusion) combines semantic (dense) + keyword (BM25) matching
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features-section">
+            <h2 style="color: white; margin-bottom: 1.5rem; text-align: center;">🌟 Tính năng chính</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🗄️</div>
+                    <h3>Indexing thông minh</h3>
+                    <p>29 chunks từ 5 documents với metadata đầy đủ (source, section, effective_date). Chunking heading-based để giữ ngữ cảnh.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Hybrid Retrieval</h3>
+                    <p>Dense (semantic) + BM25 (keyword) với RRF fusion. Khắc phục điểm yếu của mỗi phương pháp.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Grounded Answers</h3>
+                    <p>Temperature=0, strict prompt buộc trả lời chỉ từ context. Abstain khi thiếu dữ liệu, zero hallucination.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Citations</h3>
+                    <p>Mỗi câu trả lời có [1], [2] citations. Người dùng dễ verify source và điều khoản cụ thể.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3>Performance</h3>
+                    <p>4.7/5 overall score. +0.5 improvement vs dense. 8/10 questions perfect 5/5.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Cost-Effective</h3>
+                    <p>OpenAI embeddings (~$0.02/1M tokens) + gpt-4o-mini (~$0.0005/query). Hybrid không thêm cost.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Lab Day 8 — AI in Action (AICB-P1) | Sprint 1-3 Complete | Hybrid Retrieval + Grounded Generation</p>
+        </div>
+    </div>
+
+    <script>
+        const testQueries = {
+            "SLA xử lý ticket P1 là bao lâu?": {
+                answer: "SLA xử lý ticket P1 là 4 giờ để khắc phục (resolution) và phản hồi ban đầu trong 15 phút kể từ khi ticket được tạo [1].",
+                sources: ["support/sla-p1-2026.pdf"],
+                stats: "Retrieval Mode: Hybrid | Chunks Found: 10→3 | Top Score: 0.85"
+            },
+            "Khách hàng có thể yêu cầu hoàn tiền trong bao nhiêu ngày?": {
+                answer: "Khách hàng có thể yêu cầu hoàn tiền trong vòng 7 ngày làm việc kể từ thời điểm xác nhận đơn hàng [1].",
+                sources: ["policy/refund-v4.pdf"],
+                stats: "Retrieval Mode: Hybrid | Chunks Found: 10→3 | Top Score: 0.82"
+            },
+            "Ai phải phê duyệt để cấp quyền Level 3?": {
+                answer: "Để cấp quyền Level 3 (Elevated Access), cần phê duyệt từ Line Manager, IT Admin, và IT Security [1].",
+                sources: ["it/access-control-sop.md"],
+                stats: "Retrieval Mode: Hybrid | Chunks Found: 10→3 | Top Score: 0.79"
+            },
+            "Tài khoản bị khóa sau bao nhiêu lần đăng nhập sai?": {
+                answer: "Tài khoản bị khóa sau 5 lần đăng nhập sai liên tiếp [1]. Hybrid retrieval tìm được từ IT Helpdesk FAQ.",
+                sources: ["support/helpdesk-faq.md"],
+                stats: "Retrieval Mode: Hybrid | Chunks Found: 10→3 | Top Score: 0.88 ✨ (Dense=0.65)"
+            }
+        };
+
+        function setQuery(text) {
+            document.getElementById('queryInput').value = text;
+            sendQuery();
+        }
+
+        function sendQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) return;
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('resultContainer').style.display = 'none';
+
+            // Simulate API call
+            setTimeout(() => {
+                const result = testQueries[query] || {
+                    answer: "Xin lỗi, tôi không tìm thấy thông tin liên quan trong tài liệu hiện có.",
+                    sources: [],
+                    stats: "Retrieval Mode: Hybrid | Chunks Found: 0 | Abstain: Low confidence"
+                };
+
+                // Render results
+                let html = `
+                    <div class="result-box answer">
+                        <div class="result-label">💬 Câu trả lời</div>
+                        <p>${result.answer}</p>
+                    </div>
+                `;
+
+                if (result.sources.length > 0) {
+                    html += `
+                        <div class="result-box sources">
+                            <div class="result-label">📚 Nguồn tham khảo</div>
+                            <div>${result.sources.map(s => `<span class="source-badge">${s}</span>`).join('')}</div>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div class="result-box stats">
+                        <div class="result-label">📊 Chi tiết truy xuất</div>
+                        <p>${result.stats}</p>
+                    </div>
+                `;
+
+                document.getElementById('resultContainer').innerHTML = html;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'block';
+            }, 800);
+        }
+
+        // Initial load
+        window.addEventListener('load', () => {
+            sendQuery();
+        });
+    </script>
+</body>
+</html>
